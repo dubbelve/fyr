@@ -3,7 +3,14 @@ const lighthouse = require('lighthouse'),
       fs = require('fs');
 
 const logdir = 'logs',
-      interval = 300000;
+      interval = 300000; // every 5 minutes
+
+const sites = [
+  'm.babyshop.se',
+  'm.babyshop.com',
+  'm.alexandalexa.com/sv',
+  'm.alexandalexa.com/en'
+]
 
 /*
  * Programmatic lighthouse logging
@@ -24,23 +31,24 @@ const opts = {
   onlyCategories: ['performance'],
 };
 
-var fyr = () => {
-  console.log('Running audit for... ' + process.argv[2]);
-  var d = new Date();
-  launchChromeAndRunLighthouse('https://' + process.argv[2], opts).then(results => {
-        console.log('Lighthouse performance score: \n' + results.categories.performance.score);
-        fs.writeFile(logdir + '/' + process.argv[2] + '-' + d.getTime() + '.json', JSON.stringify(results, null, 4), function(err) {
-            if(err) {
-                return console.log(err);
-            }
-
-            console.log(logdir + '/' + process.argv[2] + '-' + d.getTime() + '.json');
-        }); 
+fyr = async (sites, logdir) => {
+  const d = new Date();
+  for (const site of sites) {
+    const res = await launchChromeAndRunLighthouse('https://' + site, opts).then(results => {
+      return results;
     })
+    console.log(site + ': ' + res.categories.performance.score);
+
+    fs.writeFile(logdir + '/' + encodeURIComponent(site) + '-' + d.getTime() + '.json', JSON.stringify(res, null, 4), function(err) {
+      if(err) {
+          return console.log(err);
+      }
+    }); 
+  }
+  console.log("Done!")
 }
 
-// Run once and then every -interval-
-fyr();
+fyr(sites, logdir);
 setInterval(() => {
-    fyr();
+  fyr(sites, logdir);
 }, interval);
