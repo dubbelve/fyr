@@ -26,15 +26,15 @@ const opts = {
 
 var fyr = () => {
   console.log('Running audit for... ' + process.argv[2]);
-    var d = new Date();
-    launchChromeAndRunLighthouse('https://' + process.argv[2], opts).then(results => {
-        delete results.audits['screenshot-thumbnails'];
-        fs.writeFile(logdir + '/' + process.argv[2] + '-' + d.getTime() + '.json', JSON.stringify(results.audits, null, 4), function(err) {
+  var d = new Date();
+  launchChromeAndRunLighthouse('https://' + process.argv[2], opts).then(results => {
+        console.log('Lighthouse performance score: \n' + results.categories.performance.score);
+        fs.writeFile(logdir + '/' + process.argv[2] + '-' + d.getTime() + '.json', JSON.stringify(results, null, 4), function(err) {
             if(err) {
                 return console.log(err);
             }
 
-            console.log("The file was saved!");
+            console.log(logdir + '/' + process.argv[2] + '-' + d.getTime() + '.json');
         }); 
     })
 }
